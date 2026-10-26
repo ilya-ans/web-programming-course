@@ -26,6 +26,7 @@ export function TaskCard({ task }: TaskCardProps) {
       {task.kind === "single-choice" ? (
         <ul>
           {task.options.map((opt) => (
+            // Не указываем явно return, так как стрелочная функция использует выражение (), а не блок {}
             <li key={opt.id}>{opt.label}</li>
           ))}
         </ul>

@@ -79,36 +79,32 @@ export function filterTasks(tasks: Task[], topic: string): Task[] {
     return filteredTasks;
 }
 
+// Проверка решено ли задание или не решено
+export function isAnswered(task: Task, answer: Answer | undefined): boolean {
+  // Обработка пустого ответа (undefined)
+  if (!answer) return false;
+  
+  // Проверка наличия варианта ответа. some - вернет истину, если хотя бы один элемент удовлетворяет условию
+  if (task.kind === "single-choice" && answer.kind === "single-choice") {
+    return task.options.some((opt) => opt.id === answer.optionId);
+  }
+
+  // Проверка наличия реальных символов (не пробелов)
+  if (task.kind === "short-text" && answer.kind === "short-text") {
+    return answer.text.trim().length > 0;
+  }
+
+  return false;
+}
+
 // Получение общего количества заданий и решенного количества
 export function getProgress(set: TrainingSet, answers: Answer[]): Progress {
-    const total = set.tasks.length;
-    let filled = 0;
-
-    for (const task of set.tasks) {
-        //Поиск в ответах ид задания
-        const answer = answers.find((a) => a.taskId === task.id);
-        if (!answer) {
-            continue;
-        }
-
-        // Проверка на совпадение типа задания и типа ответа
-        if (task.kind === "single-choice" && answer.kind === "single-choice") {
-            // Проверка включения ид ответа в списке options
-            const hasOption = task.options.some((opt) => opt.id === answer.optionId);
-            if (hasOption) {
-                filled++;
-            }
-            continue;
-        }
-
-        // Проверка на совпадение типа задания и типа ответа
-        if (task.kind === "short-text" && answer.kind === "short-text") {
-            // Проверка на наличие ответа 
-            if (answer.text.trim() !== "") {
-                filled++;
-            }
-        }
+  let filled = 0;
+  for (const task of set.tasks) {
+    const answer = answers.find((a) => a.taskId === task.id);
+    if (isAnswered(task, answer)) {
+      filled++;
     }
-
-    return { filled, total };
+  }
+  return { filled, total: set.tasks.length };
 }
